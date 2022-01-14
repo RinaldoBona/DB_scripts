@@ -1,0 +1,16 @@
+-- MULEUAT.transcoding_tbl definition
+
+CREATE TABLE `transcoding_tbl` (
+  `entity` varchar(50) NOT NULL,
+  `primary_system` enum('SF','CDB','SAP','SEM','DMS','RFS','DWH','ZENDESK','CLIMAN','DBM','COMCLIENTI','AREACLIENTI') NOT NULL DEFAULT 'SF',
+  `secondary_system` enum('SF','CDB','SAP','SEM','DMS','RFS','DWH','ZENDESK','CLIMAN','DBM','COMCLIENTI','AREACLIENTI') NOT NULL,
+  `value_primary` varchar(100) DEFAULT NULL,
+  `type_primary` varchar(20) DEFAULT NULL,
+  `value_secondary` varchar(100) DEFAULT NULL,
+  `type_secondary` varchar(20) DEFAULT NULL,
+  `creation_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modification_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `active` enum('false','true') NOT NULL DEFAULT 'true',
+  `ID` int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

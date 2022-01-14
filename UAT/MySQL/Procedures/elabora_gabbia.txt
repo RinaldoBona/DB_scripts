@@ -1,0 +1,447 @@
+CREATE DEFINER=`muleuat`@`%` PROCEDURE `MULEUAT`.`elabora_gabbia`( 
+		IN 	JSON json,
+        OUT result INT
+    )
+BEGIN
+    
+    DECLARE present INT;
+    DECLARE currentTable varchar(100);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    
+    GET DIAGNOSTICS CONDITION 1
+	@p1 = RETURNED_SQLSTATE, @p2 = MESSAGE_TEXT, @p3 = TABLE_NAME;
+	SELECT @p1 as RETURNED_SQLSTATE  , @p2 as MESSAGE_TEXT, @p3 AS TABLE_NAME;
+    
+    delete from ALS_CSF028_0_WORKORDER where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_1_WO_CTR_SUBSCRIPTIONS where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_2_WO_PUBLISHERS where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_3_WO_TESTO where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_4_WO_URL where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_5_WO_NUMERO where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_6_WO_EMAIL where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_7_WO_SEDE where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_8_WO_PICKLIST where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_9_WO_KEYWORD where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_A_WO_CATEGORIA where WO_ID = json->>"$.WorkOrder.Id";
+    
+    INSERT INTO `MULEUAT`.`ALS_CSF028_B_ERRORS`
+	(`WO_ID`,
+	`TABLE_NAME`,
+	`MESSAGE`,
+	`JSON`)
+	VALUES
+	(json->>"$.WorkOrder.Id",
+	currentTable,
+	@p2,
+	json
+	);
+    
+    COMMIT;
+		set result = 0;
+	END;
+    
+    start transaction;
+    
+    delete from ALS_CSF028_0_WORKORDER where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_1_WO_CTR_SUBSCRIPTIONS where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_2_WO_PUBLISHERS where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_3_WO_TESTO where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_4_WO_URL where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_5_WO_NUMERO where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_6_WO_EMAIL where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_7_WO_SEDE where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_8_WO_PICKLIST where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_9_WO_KEYWORD where WO_ID = json->>"$.WorkOrder.Id";
+    delete from ALS_CSF028_A_WO_CATEGORIA where WO_ID = json->>"$.WorkOrder.Id";
+	
+    set currentTable = 'ALS_CSF028_0_WORKORDER';
+    
+    INSERT INTO `MULEUAT`.`ALS_CSF028_0_WORKORDER`
+    (   `WO_ID`,
+		`CUSTOMER_COD`,
+		`OPEC_COD`,
+		`SEDE_COD`,
+		`PIVA_COD`,
+		`FISC_COD`,
+		`RAG_SOC`,
+		`JSON_DATA`, 
+        `WO_MASTER_ID`)
+	select 
+	json->>"$.WorkOrder.Id",
+    json->>"$.Cliente.CodiceCustomer" as codice_customer,
+	json->>"$.Cliente.Opec" as opec,
+    json->>"$.Cliente.CodiceSede" as codice_sede,
+    json->>"$.Cliente.PartitaIva" as partita_iva,
+    json->>"$.Cliente.CodiceFiscale" as codice_fiscale,
+    json->>"$.Cliente.RagioneSociale" as ragione_sociale,
+    json,
+    case when json->>"$.WorkOrder.IdWorkOrderMaster" is null then null when json->>"$.WorkOrder.IdWorkOrderMaster" = 'null' then null else json->>"$.WorkOrder.IdWorkOrderMaster" end;
+    
+    set currentTable = 'ALS_CSF028_1_WO_CTR_SUBSCRIPTIONS';
+    
+    INSERT INTO `MULEUAT`.`ALS_CSF028_1_WO_CTR_SUBSCRIPTIONS`
+	(`WO_ID`,
+	`COMMISSIONE`,
+	`ANNUALITA`,
+	`NUM_MODB`,
+	`SIGLA`,
+	`PUBL_TYPE`)
+	select 
+		json->>"$.WorkOrder.Id",
+		LEFT(ctrs.CommissioneAnnualita,8) as Commissione,
+		right(ctrs.CommissioneAnnualita,1) as Annualita,
+		NumeroModuloB,
+		Sigla,
+		TipoPubblicazione
+	from 
+		json_table(json->>"$.Contratti", '$[*]' COLUMNS( 
+		CommissioneAnnualita varchar(9) PATH '$.CodiceContratto', 
+		NESTED PATH '$.Subscriptions[*]' COLUMNS (
+			Sigla varchar(32) path '$.Sigla',
+			NumeroModuloB int path '$.NumeroModuloB',
+			TipoPubblicazione varchar(32) path '$.TipoPubblicazione'
+			)
+		 ) ) as ctrs
+	where ctrs.NumeroModuloB is not null and ctrs.Sigla is not null and ctrs.TipoPubblicazione is not null;
+	
+    set currentTable = 'ALS_CSF028_2_WO_PUBLISHERS';
+    
+    INSERT INTO `MULEUAT`.`ALS_CSF028_2_WO_PUBLISHERS`
+	(`WO_ID`,
+	`PRODUCT_COD`,
+	`STATO`,
+	`PUBLISHER_COD`)
+	 select 
+		json->>"$.WorkOrder.Id",
+		publ.Prodotto,
+        publ.Stato,
+        publ.CodicePublisher
+	from 
+		json_table(json->>"$.Publishers", '$[*]' COLUMNS( 
+		Prodotto varchar(255) PATH '$.Prodotto', 
+		Stato varchar(255) PATH '$.Stato', 
+		CodicePublisher varchar(255) PATH '$.CodicePublisher'
+		 ) ) as publ;
+	
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Testo') into present;
+	
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_3_WO_TESTO';
+    
+		INSERT INTO `MULEUAT`.`ALS_CSF028_3_WO_TESTO`
+		(`WO_ID`,
+		`NUM_MODB`,
+		`VALORE`,
+		`POSIZIONE`,
+		`LABEL`,
+		`LINGUA`,
+		`ID`,
+		`URL_OLD`,
+		`NUM_COMMISSIONE`)
+		select 
+			json->>"$.WorkOrder.Id",
+			texts.NumeroModuloB,
+			texts.valore,
+			texts.Posizione,
+			texts.Label,
+			texts.Lingua,
+			texts.Id,
+			texts.UrlOld,
+			texts.NumeroCommissione
+		from 
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Testo[*]' COLUMNS (
+				NumeroModuloB varchar(32) path '$.NumeroModuloB',
+				valore varchar(5000) path '$.valore',
+				Posizione int path '$.Posizione',
+				Label varchar(3000) path '$.Label',
+				Lingua varchar(32) path '$.Lingua',
+				Id varchar(32) path '$.Id',
+				UrlOld varchar(3000) path '$.UrlOld',
+				NumeroCommissione varchar(32) path '$.NumeroCommissione'
+				)
+			 ) ) as texts
+             where texts.Id = '210';
+	end if;
+	
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Url') into present;
+	
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_4_WO_URL';
+        
+		INSERT INTO `MULEUAT`.`ALS_CSF028_4_WO_URL`
+		(`WO_ID`,
+		`ID`,
+		`URL`,
+		`LABEL`,
+		`TITOLO`,
+		`POSIZIONE`,
+		`TIPOLOGIASITO`)
+		select 
+			json->>"$.WorkOrder.Id",
+			urls.Id,
+			urls.Url,
+			urls.Label,
+			urls.Titolo,
+			urls.Posizione,
+			urls.TipologiaSito
+		from 
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Url[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Url varchar(3000) path '$.Url',
+				Label varchar(3000) path '$.Label',
+				Titolo varchar(3000) path '$.Titolo',
+				Posizione int path '$.Posizione',
+				TipologiaSito varchar(3000) path '$.TipologiaSito'
+				)
+			 ) ) as urls 
+             where urls.Id = '31280';
+	end if;
+	
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Numero') into present;
+	
+    if ( present = 1 ) then
+		
+        set currentTable = 'ALS_CSF028_5_WO_NUMERO';
+    
+		INSERT INTO `MULEUAT`.`ALS_CSF028_5_WO_NUMERO`
+		(`WO_ID`,
+		`ID`,
+		`LABEL`,
+		`VALORE`,
+		`POSIZIONE`)
+		select 
+			json->>"$.WorkOrder.Id",
+			nums.Id,
+			nums.Label,
+			nums.valore,
+			nums.Posizione
+		from 
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Numero[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Label varchar(3000) path '$.Label',
+				valore decimal(11,2) path '$.valore',
+				Posizione int path '$.Posizione'
+				)
+			 ) ) as nums;
+	end if;
+
+	SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Email') into present;
+	
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_6_WO_EMAIL';
+        
+		INSERT INTO `MULEUAT`.`ALS_CSF028_6_WO_EMAIL`
+		(`WO_ID`,
+		`ID`,
+		`NAZIONE`,
+		`EMAIL`,
+		`POSIZIONE`,
+		`LABEL`,
+		`FUNZ_AZIEND`)
+		select 
+			json->>"$.WorkOrder.Id",
+			emails.Id,
+			emails.Nazione,
+			emails.Email,
+			emails.Posizione,
+			emails.Label,
+			emails.FunzioneAziendale
+		from 
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Email[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Label varchar(3000) path '$.Label',
+				Nazione varchar(3000) path '$.Nazione',
+				Posizione int path '$.Posizione',
+				Email varchar(3000) path '$.Email',
+				FunzioneAziendale varchar(3000) path '$.FunzioneAziendale'
+				)
+			 ) ) as emails
+             where emails.Id = '280';
+	end if;
+    
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Sede') into present;
+	
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_7_WO_SEDE';
+        
+		INSERT INTO `MULEUAT`.`ALS_CSF028_7_WO_SEDE`
+		(`WO_ID`,
+		`ID`,
+		`CODICE_COMUNE`,
+		`POSIZIONE`)
+		select 
+			json->>"$.WorkOrder.Id",
+			sedi.Id,
+			sedi.CodiceComune,
+			sedi.Posizione
+		from
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Sede[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				CodiceComune varchar(32) path '$.CodiceComune',
+				Posizione int path '$.Posizione'
+				)
+			 ) ) as sedi;
+	end if;
+    
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Picklist') into present;
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_8_WO_PICKLIST';
+    
+		INSERT INTO `MULEUAT`.`ALS_CSF028_8_WO_PICKLIST`
+		(`WO_ID`,
+		`ID`,
+		`LABEL`,
+		`POSIZIONE`,
+		`VALORE`,
+		`DESCRIZIONE`)
+		select 
+			json->>"$.WorkOrder.Id",
+			pl.Id,
+			pl.Label,
+			pl.Posizione,
+			pl.Valore,
+			pl.Descrizione
+		from
+			json_table(json->>"$.Contenuti", '$' COLUMNS ( 
+			NESTED PATH '$.Picklist[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Label varchar(3000) path '$.Label',
+				Posizione int path '$.Posizione',
+				NESTED PATH '$.Valori[*]' COLUMNS(
+					Valore varchar(500) path '$.Valore',
+					Descrizione varchar(3000) path '$.Descrizione'
+				)
+				)
+			 ) ) as pl
+             where pl.Id = '36460';
+	end if;
+    
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Keyword') into present;
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_9_WO_KEYWORD';
+        
+		INSERT INTO `MULEUAT`.`ALS_CSF028_9_WO_KEYWORD`
+		(`WO_ID`,
+		`ID`,
+		`LABEL`,
+		`POSIZIONE`,
+		`CODICE`,
+		`LINGUA`,
+		`CATEGORIE`,
+		`DESCRIZIONE`,
+		`COD_RAGGR`)
+	select distinct 
+		kw2.wo_id,
+		kw2.Id,
+		kw2.Label,
+		kw2.Posizione,
+		kw2.Codice,
+		kw2.Lingua,
+		data.Categoria,
+		kw2.Descrizione,
+		kw2.CodiceRaggruppamento
+	from (
+	select 
+		json->>"$.WorkOrder.Id" as wo_id,
+				kw.Id,
+				kw.Label,
+				kw.Posizione,
+				kw.Codice,
+				kw.Lingua,
+				concat('["', replace(kw.Categorie, ';', '","'), '"]') as catArray,
+				kw.Categorie,
+				kw.Descrizione,
+				kw.CodiceRaggruppamento
+	from 
+		json_table(JSON->>"$.Contenuti", '$' COLUMNS( 
+		NESTED PATH '$.Keyword[*]' COLUMNS (
+			Id varchar(32) path '$.Id',
+			Label varchar(3000) path '$.Label',
+			Codice varchar(32) path '$.Codice',
+			Lingua varchar(32) path '$.Lingua',
+			Categorie varchar(3000) path '$.Categorie',
+			Posizione int path '$.Posizione',
+			Descrizione varchar(3000) path '$.Descrizione',
+			CodiceRaggruppamento varchar(32) path '$.CodiceRaggruppamento'
+			)
+		 ) ) as kw where kw.Id in ('290','84290','8100')
+		 ) kw2,
+		 JSON_TABLE(
+			  cast(kw2.catArray as JSON),
+			 "$[*]"
+			 COLUMNS(
+			   Categoria varchar(32) PATH "$"
+			 )
+		   ) data;
+		/*select 
+			json->>"$.WorkOrder.Id",
+			kw.Id,
+			kw.Label,
+			kw.Posizione,
+			kw.Codice,
+			kw.Lingua,
+			kw.Categorie,
+			kw.Descrizione,
+			kw.CodiceRaggruppamento
+		from 
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Keyword[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Label varchar(3000) path '$.Label',
+				Codice varchar(32) path '$.Codice',
+				Lingua varchar(32) path '$.Lingua',
+				Categorie varchar(3000) path '$.Categorie',
+				Posizione int path '$.Posizione',
+				Descrizione varchar(3000) path '$.Descrizione',
+				CodiceRaggruppamento varchar(32) path '$.CodiceRaggruppamento'
+				)
+			 ) ) as kw;*/
+	end if;
+	
+    SELECT JSON_CONTAINS_PATH(json, 'one', '$.Contenuti.Categoria') into present;
+    if ( present = 1 ) then
+    
+		set currentTable = 'ALS_CSF028_A_WO_CATEGORIA';
+    
+		INSERT INTO `MULEUAT`.`ALS_CSF028_A_WO_CATEGORIA`
+		(`WO_ID`,
+		`ID`,
+		`LABEL`,
+		`POSIZIONE`,
+		`CODICE`,
+		`DESCRIZIONE`)
+		select 
+			json->>"$.WorkOrder.Id",
+			cat.Id,
+			cat.Label,
+			cat.Posizione,
+			cat.Codice,
+			cat.Descrizione
+		from
+			json_table(json->>"$.Contenuti", '$' COLUMNS( 
+			NESTED PATH '$.Categoria[*]' COLUMNS (
+				Id varchar(32) path '$.Id',
+				Label varchar(3000) path '$.Label',
+				Codice varchar(32) path '$.Codice',
+				Posizione int path '$.Posizione',
+				Descrizione varchar(3000) path '$.Descrizione'
+				)
+			 ) ) as cat;
+	end if;
+    
+    commit;
+    set result = 1;
+    
+END;

@@ -1,0 +1,11 @@
+-- MULEPRO.IPS_SF_FEEDBACK_LOG_2019 definition
+
+CREATE TABLE `IPS_SF_FEEDBACK_LOG_2019` (
+  `id` int(11) NOT NULL DEFAULT '0',
+  `codice_commissione` varchar(20) DEFAULT NULL,
+  `codice_foglio` varchar(20) DEFAULT NULL,
+  `request` longtext,
+  `response` longtext,
+  `data` datetime DEFAULT NULL,
+  `tipo` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -1,0 +1,5 @@
+CREATE DEFINER=`MULEUATUSER`@`%` TRIGGER `after_flow_log_SF006_insert` AFTER INSERT ON `FLOW_LOG` FOR EACH ROW BEGIN
+    IF NEW.FLOW_NAME = 'C-SF006/Step1' THEN
+        INSERT INTO CONTRATTI_SAP_TEMP(payload, transaction_id) VALUES(new.payload, new.transaction_id);
+    END IF;
+END;

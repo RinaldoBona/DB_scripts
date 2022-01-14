@@ -1,0 +1,201 @@
+-- MULEPRO.RUN_DAYS source
+
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `RUN_DAYS` AS with `q` as (
+select
+    `v`.`selected_date` AS `selected_date`
+from
+    (
+    select
+        ('2019-08-01' + interval (((((`t4`.`i` * 10000) + (`t3`.`i` * 1000)) + (`t2`.`i` * 100)) + (`t1`.`i` * 10)) + `t0`.`i`) day) AS `selected_date`
+    from
+        (((((
+        select
+            0 AS `i`
+    union
+        select
+            1 AS `1`
+    union
+        select
+            2 AS `2`
+    union
+        select
+            3 AS `3`
+    union
+        select
+            4 AS `4`
+    union
+        select
+            5 AS `5`
+    union
+        select
+            6 AS `6`
+    union
+        select
+            7 AS `7`
+    union
+        select
+            8 AS `8`
+    union
+        select
+            9 AS `9`) `t0`
+    join (
+        select
+            0 AS `i`
+    union
+        select
+            1 AS `1`
+    union
+        select
+            2 AS `2`
+    union
+        select
+            3 AS `3`
+    union
+        select
+            4 AS `4`
+    union
+        select
+            5 AS `5`
+    union
+        select
+            6 AS `6`
+    union
+        select
+            7 AS `7`
+    union
+        select
+            8 AS `8`
+    union
+        select
+            9 AS `9`) `t1`)
+    join (
+        select
+            0 AS `i`
+    union
+        select
+            1 AS `1`
+    union
+        select
+            2 AS `2`
+    union
+        select
+            3 AS `3`
+    union
+        select
+            4 AS `4`
+    union
+        select
+            5 AS `5`
+    union
+        select
+            6 AS `6`
+    union
+        select
+            7 AS `7`
+    union
+        select
+            8 AS `8`
+    union
+        select
+            9 AS `9`) `t2`)
+    join (
+        select
+            0 AS `i`
+    union
+        select
+            1 AS `1`
+    union
+        select
+            2 AS `2`
+    union
+        select
+            3 AS `3`
+    union
+        select
+            4 AS `4`
+    union
+        select
+            5 AS `5`
+    union
+        select
+            6 AS `6`
+    union
+        select
+            7 AS `7`
+    union
+        select
+            8 AS `8`
+    union
+        select
+            9 AS `9`) `t3`)
+    join (
+        select
+            0 AS `i`
+    union
+        select
+            1 AS `1`
+    union
+        select
+            2 AS `2`
+    union
+        select
+            3 AS `3`
+    union
+        select
+            4 AS `4`
+    union
+        select
+            5 AS `5`
+    union
+        select
+            6 AS `6`
+    union
+        select
+            7 AS `7`
+    union
+        select
+            8 AS `8`
+    union
+        select
+            9 AS `9`) `t4`)) `v`
+where
+    (`v`.`selected_date` between (cast(sysdate() as date) - interval 15 day) and (cast(sysdate() as date) + interval 0 day)))
+select
+    date_format(`q`.`selected_date`, '%Y-%m-%d') AS `date`,
+    (case
+        weekday(`q`.`selected_date`) when 0 then 1
+        else 0
+    end) AS `isMonday`,
+    (case
+        weekday(`q`.`selected_date`) when 1 then 1
+        else 0
+    end) AS `isTuesday`,
+    (case
+        weekday(`q`.`selected_date`) when 2 then 1
+        else 0
+    end) AS `isWednesday`,
+    (case
+        weekday(`q`.`selected_date`) when 3 then 1
+        else 0
+    end) AS `isThursday`,
+    (case
+        weekday(`q`.`selected_date`) when 4 then 1
+        else 0
+    end) AS `isFriday`,
+    (case
+        weekday(`q`.`selected_date`) when 5 then 1
+        else 0
+    end) AS `isSaturday`,
+    (case
+        weekday(`q`.`selected_date`) when 6 then 1
+        else 0
+    end) AS `isSunday`,
+    (case
+        when (weekday(`q`.`selected_date`) <= 4) then 1
+        else 0
+    end) AS `isWorkday`,
+    1 AS `isDaily`,
+    1 AS `isPolling`
+from
+    `q`;

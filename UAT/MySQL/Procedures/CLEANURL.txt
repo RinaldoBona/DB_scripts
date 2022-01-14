@@ -1,0 +1,14 @@
+CREATE DEFINER=`muleuat`@`%` FUNCTION `MULEUAT`.`CLEANURL`(S varchar(3000)) RETURNS varchar(3000) CHARSET utf8mb4
+    READS SQL DATA
+    DETERMINISTIC
+BEGIN
+DECLARE RESULT VARCHAR(3000); 
+SELECT replace(
+			replace(
+				replace(
+					replace(ifnull(S, ''),'https://www.','')
+				,'http://www.','')
+			,'https://','')
+		,'http://','') INTO RESULT;
+RETURN RESULT;
+END;

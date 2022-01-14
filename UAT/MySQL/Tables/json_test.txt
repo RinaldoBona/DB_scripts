@@ -1,0 +1,7 @@
+-- MULEUAT.json_test definition
+
+CREATE TABLE `json_test` (
+  `WO_ID` varchar(32) NOT NULL,
+  `json` json NOT NULL,
+  PRIMARY KEY (`WO_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

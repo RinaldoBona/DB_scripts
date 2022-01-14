@@ -1,0 +1,64 @@
+-- MULEUAT.ALS_CSF028_WO_PUBLISHERS source
+
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `ALS_CSF028_WO_PUBLISHERS` AS
+select
+    `w`.`WO_ID` AS `WO_ID`,
+    `w`.`CREATED_ON` AS `CREATED_ON`,
+    (case
+        when exists(
+        select
+            1
+        from
+            `ALS_CSF028_2_WO_PUBLISHERS` `p`
+        where
+            ((`p`.`WO_ID` = `w`.`WO_ID`)
+                and (`p`.`PUBLISHER_COD` = 'IOLWEBSITE'))) then '1'
+        else '0'
+    end) AS `HA_IOLWEBSITE`,
+    (case
+        when exists(
+        select
+            1
+        from
+            `ALS_CSF028_2_WO_PUBLISHERS` `p`
+        where
+            ((`p`.`WO_ID` = `w`.`WO_ID`)
+                and (`p`.`PUBLISHER_COD` = 'PGCASA'))) then '1'
+        else '0'
+    end) AS `HA_PGCASA`,
+    (case
+        when exists(
+        select
+            1
+        from
+            `ALS_CSF028_2_WO_PUBLISHERS` `p`
+        where
+            ((`p`.`WO_ID` = `w`.`WO_ID`)
+                and (`p`.`PUBLISHER_COD` = 'PGIT'))) then '1'
+        else '0'
+    end) AS `HA_PGIT`,
+    (case
+        when exists(
+        select
+            1
+        from
+            `ALS_CSF028_2_WO_PUBLISHERS` `p`
+        where
+            ((`p`.`WO_ID` = `w`.`WO_ID`)
+                and (`p`.`PUBLISHER_COD` = 'PBIT'))) then '1'
+        else '0'
+    end) AS `HA_PBIT`,
+    (case
+        when exists(
+        select
+            1
+        from
+            `ALS_CSF028_2_WO_PUBLISHERS` `p`
+        where
+            ((`p`.`WO_ID` = `w`.`WO_ID`)
+                and (`p`.`PUBLISHER_COD` = 'EUPAGES'))) then '1'
+        else '0'
+    end) AS `HA_EUPAGES`
+from
+    `ALS_CSF028_0_WORKORDER` `w`;

@@ -1,0 +1,17 @@
+-- MULEPRO.FLOW_FREQUENCY definition
+
+CREATE TABLE `FLOW_FREQUENCY` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `ID_Coltrane` varchar(45) DEFAULT NULL,
+  `ID_EAI` varchar(45) DEFAULT NULL,
+  `Frequency` varchar(45) DEFAULT NULL,
+  `Start` time DEFAULT NULL,
+  `End` time DEFAULT NULL,
+  `Delay` int(11) DEFAULT NULL,
+  `Delay_unit` varchar(45) DEFAULT NULL,
+  `Directory` varchar(45) DEFAULT NULL,
+  `Pause` int(11) DEFAULT NULL,
+  `Active` bit(1) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `ID_UNIQUE` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Tabella delle frequente teoriche dei flussi MuleSoft';

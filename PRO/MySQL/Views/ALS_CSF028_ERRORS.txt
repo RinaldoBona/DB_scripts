@@ -1,0 +1,22 @@
+-- MULEPRO.ALS_CSF028_ERRORS source
+
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `ALS_CSF028_ERRORS` AS
+select
+    `a`.`WO_ID` AS `WorkOrderId`,
+    (case
+        `a`.`TABLE_NAME` when 'ALS_CSF028_0_WORKORDER' then 'WorkOrder'
+        when 'ALS_CSF028_1_WO_CTR_SUBSCRIPTIONS' then 'Subscriptions'
+        when 'ALS_CSF028_2_WO_PUBLISHERS' then 'Publishers'
+        when 'ALS_CSF028_3_WO_TESTO' then 'Testo'
+        when 'ALS_CSF028_4_WO_URL' then 'Url'
+        when 'ALS_CSF028_5_WO_NUMERO' then 'Numero'
+        when 'ALS_CSF028_6_WO_EMAIL' then 'Email'
+        when 'ALS_CSF028_7_WO_SEDE' then 'Sede'
+        when 'ALS_CSF028_8_WO_PICKLIST' then 'Picklist'
+        when 'ALS_CSF028_9_WO_KEYWORD' then 'Keyword'
+        when 'ALS_CSF028_A_WO_CATEGORIA' then 'Categoria'
+        else 'ND'
+    end) AS `oggetto`,
+    `a`.`MESSAGE` AS `erroreOriginale`,
+    substring_index(replace(replace(replace(`a`.`MESSAGE`, 'Duplicate entry \'',''),' \' for key \' PRIMARY\'', ''), concat(`a`.`WO_ID`, '-'), ''), '-', 1) AS `id duplicato`, `a`.`CREATED_ON` AS `dataEvento`,(case `a`.`TABLE_NAME` when 'ALS_CSF028_3_WO_TESTO' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Testo'))) when 'ALS_CSF028_4_WO_URL' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Url'))) when 'ALS_CSF028_5_WO_NUMERO' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Numero'))) when 'ALS_CSF028_6_WO_EMAIL' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Email'))) when 'ALS_CSF028_7_WO_SEDE' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Sede'))) when 'ALS_CSF028_8_WO_PICKLIST' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Picklist'))) when 'ALS_CSF028_9_WO_KEYWORD' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Keyword'))) when 'ALS_CSF028_A_WO_CATEGORIA' then json_pretty(json_unquote(json_extract(`a`.`JSON`, '$.Contenuti.Categoria'))) else 'ND' end) AS `jsonErrato`, `a`.`JSON` AS `jsonCompleto` from `ALS_CSF028_B_ERRORS` `a`;

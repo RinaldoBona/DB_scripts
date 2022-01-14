@@ -1,0 +1,83 @@
+CREATE DEFINER=`muleuat`@`%` PROCEDURE `MULEUAT`.`FIRMA_UPSERT`(
+	IN 	source 	varchar(3),
+	IN 	payload	json,
+	IN 	stato	varchar(10),
+	OUT result 	int
+)
+BEGIN
+	
+	DECLARE present INT;
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    
+    GET DIAGNOSTICS CONDITION 1
+	@p1 = RETURNED_SQLSTATE, @p2 = MESSAGE_TEXT, @p3 = TABLE_NAME;
+	SELECT @p1 as RETURNED_SQLSTATE  , @p2 as MESSAGE_TEXT, @p3 AS TABLE_NAME;
+	
+	select CONCAT('Errore: ', @p1, ', ', @p2, ', ', @p3 );
+
+	rollback;
+
+	end;
+
+	if ( source is null OR payload is null OR stato is null OR 
+		(payload ->> "$.document.jobId") is null OR 
+		(payload ->> "$.document.docTipoFirma") is null ) THEN 
+	
+		select CONCAT('Dati insufficienti: source=', source);
+		select CONCAT('Dati insufficienti: stato=', stato);
+ 		select CONCAT('Dati insufficienti: jobId=', (payload ->> "$.document.jobId"));
+ 		select CONCAT('Dati insufficienti: docTipoFirma=', (payload ->> "$.document.docTipoFirma"));
+ 		select CONCAT('Dati insufficienti: payload=', payload);
+		
+		set result = 0;
+
+	else
+	
+		select count(*) into present from FIRMA_INPUT f where f.JOB_ID = payload ->> "$.document.jobId";
+	
+		if ( present = 0 ) then
+		
+			INSERT INTO FIRMA_INPUT
+				(SOURCE, TIPO, COMMISSIONE, OPEC, DOC_ID, JOB_ID, PAYLOAD, STATO)
+			VALUES
+			(
+				source, 
+				payload ->> "$.document.docTipoFirma", 
+				payload ->> "$.document.docCodContratto", 
+				payload ->> "$.document.docOpec",  
+				payload ->> "$.document.docId",  
+				payload ->> "$.document.jobId", 
+				payload, 
+				stato
+			);
+		
+			select CONCAT('OK INSERT jobId: ', payload ->> "$.document.jobId" );
+			commit;
+		
+		else
+			
+			UPDATE 
+				FIRMA_INPUT
+			SET 
+				SOURCE 		= source, 
+				TIPO 		= payload ->> "$.document.docTipoFirma",
+				COMMISSIONE = payload ->> "$.document.docCodContratto", 
+				OPEC 		= payload ->> "$.document.docOpec",
+				DOC_ID 		= payload ->> "$.document.docId",
+				PAYLOAD 	= payload, 
+				STATO 		= stato,
+				UPDATED_ON  = now()
+			WHERE 
+				JOB_ID = payload ->> "$.document.jobId";
+			
+			select CONCAT('OK UPDATE jobId: ', payload ->> "$.document.jobId" );
+			commit;
+
+		end if;
+		
+		set result = 1;
+
+	end if;
+END;

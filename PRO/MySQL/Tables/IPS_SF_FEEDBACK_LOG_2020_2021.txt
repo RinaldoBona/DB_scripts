@@ -1,0 +1,13 @@
+-- MULEPRO.IPS_SF_FEEDBACK_LOG_2020_2021 definition
+
+CREATE TABLE `IPS_SF_FEEDBACK_LOG_2020_2021` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `codice_commissione` varchar(20) DEFAULT NULL,
+  `codice_foglio` varchar(20) DEFAULT NULL,
+  `request` longtext,
+  `response` longtext,
+  `data` datetime DEFAULT NULL,
+  `tipo` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `SECONDARY` (`codice_commissione`,`codice_foglio`) /*!80000 INVISIBLE */
+) ENGINE=InnoDB AUTO_INCREMENT=10044842 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci AVG_ROW_LENGTH=1225;

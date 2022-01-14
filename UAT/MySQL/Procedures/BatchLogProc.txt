@@ -1,0 +1,30 @@
+CREATE DEFINER=`muleuat`@`%` PROCEDURE `MULEUAT`.`BatchLogProc`(IN transactionid varchar(200),
+IN log_level varchar(10), in log_message varchar(4000), in batch_flow_name varchar(100),
+in fonte varchar(10), in creation_date timestamp(3), in filename varchar(100), in start_date timestamp,
+in end_date timestamp, in num_rows int(11), in num_rows_elaborated int(11), 
+in num_rows_bad int(11), in bad_file_name varchar(100),in sf_job_id varchar(100),
+in esito varchar(2), in exception_message varchar(4000),in error_type varchar(200),
+in esito_apex_sync longtext, out righe_aggiornate int )
+BEGIN
+
+    declare	record_trovati int;
+    
+	select count(id) into record_trovati from BATCH_LOG 
+		where transaction_id = transactionid and
+              file_name = filename;
+              
+	if record_trovati > 0 then
+		# Commento
+		update BATCH_LOG 
+			set num_rows = num_rows
+				where transaction_id = transactionid and
+					  file_name = filename;
+                      
+		SELECT ROW_COUNT() into righe_aggiornate;
+	    
+        commit;
+	else
+		set righe_aggiornate = 0;
+	end if;
+    
+END;

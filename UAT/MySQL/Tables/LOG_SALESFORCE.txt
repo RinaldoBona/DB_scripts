@@ -1,0 +1,13 @@
+-- MULEUAT.LOG_SALESFORCE definition
+
+CREATE TABLE `LOG_SALESFORCE` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `codice_commissione` varchar(45) DEFAULT NULL,
+  `codice_foglio` varchar(5) DEFAULT NULL,
+  `request` longtext,
+  `response` longtext,
+  `data` datetime DEFAULT NULL,
+  `tipo` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `SECONDARY` (`codice_commissione`,`codice_foglio`) /*!80000 INVISIBLE */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
